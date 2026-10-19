@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>IELTS 4-Skill Computer-Delivered Mock System</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card-bg: #ffffff;
+      --panel-bg: #f8fafc;
+      --border: #cbd5e1;
+      --accent: #2563eb;
+      --accent-hover: #1d4ed8;
+      --target-line: #ef4444;
+      --text: #0f172a;
+      --text-muted: #64748b;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { height: 100vh; display: flex; flex-direction: column; background: var(--bg); color: var(--text); overflow: hidden; }
+
+    header {
+      background: #1e293b;
+      color: #fff;
+      padding: 10px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 2px solid #334155;
+    }
+
+    .brand { font-size: 1.1rem; font-weight: 700; display: flex; align-items: center; gap: 10px; }
+    .badge { background: #3b82f6; color: white; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; }
+    
+    .nav-tabs {
+      display: flex;
+      background: #0f172a;
+      padding: 0 20px;
+      border-bottom: 1px solid #334155;
+    }
+
+    .nav-btn {
+      background: none;
+      border: none;
+      color: #94a3b8;
+      padding: 12px 20px;
+      cursor: pointer;
+      font-size: 0.95rem;
+      font-weight: 600;
+      border-bottom: 3px solid transparent;
+      transition: all 0.2s;
+    }
+
+    .nav-btn:hover { color: #fff; }
+    .nav-btn.active {
+      color: #38bdf8;
+      border-bottom-color: #38bdf8;
+    }
+
+    .main-workspace {
+      flex: 1;
+      display: flex;
+      background: var(--panel-bg);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .tab-content {
+      width: 100%;
+      height: 100%;
+      display: none;
+    }
+
+    .tab-content.active {
+      display: flex;
+    }
+
+    /* Split layout */
+    .split-pane {
+      flex: 1;
+      overflow-y: auto;
+      padding: 28px;
+    }
+
+    .left-doc {
+      background: #fff;
+      border-right: 2px solid var(--border);
+      line-height: 1.8;
+      font-size: 1.05rem;
+    }
+
+    .right-input {
+      background: #f8fafc;
+    }
+
+    .card {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 18px;
+      margin-bottom: 20px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+
+    .btn-action {
+      background: var(--accent);
+      color: white;
+      border: none;
+      padding: 10px 18px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      margin-right: 8px;
+    }
+
+    .btn-action:hover { background: var(--accent-hover); }
+
+    /* Audio controls */
+    .audio-player-box {
+      background: #e2e8f0;
+      padding: 14px;
+      border-radius: 6px;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    /* Writing Area */
+    textarea {
+      width: 100%;
+      height: 250px;
+      padding: 14px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 1rem;
+      resize: vertical;
+      font-family: inherit;
+    }
+
+    .word-counter {
+      margin-top: 6px;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      font-weight: bold;
+    }
+
+    /* Chart Container */
+    .analytics-view {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+      overflow-y: auto;
+      padding: 30px;
+    }
+
+    .chart-box {
+      width: 750px;
+      max-width: 90%;
+      background: #fff;
+      padding: 24px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    }
+
+    .score-summary {
+      display: flex;
+      gap: 20px;
+      margin-bottom: 24px;
+    }
+
+    .metric {
+      background: #fff;
+      border: 1px solid var(--border);
+      padding: 16px 24px;
+      border-radius: 8px;
+      text-align: center;
+    }
+
+    .metric-val {
+      font-size: 2rem;
+      font-weight: 800;
+      color: var(--accent);
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand">
+      <span>IELTS Full-Exam Simulator</span>
+      <span class="badge" id="exam-id-badge">Test Set #1</span>
+    </div>
+    <div>
+      <button class="btn-action" style="background: #475569;" onclick="randomizeExam()">🔄 Roll New Mock Test</button>
+      <button class="btn-action" style="background: #16a34a;" onclick="submitFullExam()">Submit Full Test & View Graphs</button>
+    </div>
+  </header>
+
+  <nav class="nav-tabs">
+    <button class="nav-btn active" onclick="switchTab('listening')">1. Listening</button>
+    <button class="nav-btn" onclick="switchTab('reading')">2. Reading</button>
+    <button class="nav-btn" onclick="switchTab('writing')">3. Writing</button>
+    <button class="nav-btn" onclick="switchTab('speaking')">4. Speaking</button>
+    <button class="nav-btn" onclick="switchTab('results')">📊 Score Dashboard</button>
+  </nav>
+
+  <div class="main-workspace">
+
+    <!-- 1. LISTENING TAB -->
+    <section id="tab-listening" class="tab-content active">
+      <div class="split-pane left-doc">
+        <h2>Section 4: Academic Lecture Track</h2>
+        <br>
+        <p style="color: var(--text-muted); margin-bottom: 16px;">Click <strong>Play Audio Track</strong> to simulate the exam recording. Listening is played once in real IELTS conditions.</p>
+        <div class="audio-player-box">
+          <button class="btn-action" onclick="playAudioPrompt()">▶ Play Audio Track</button>
+          <button class="btn-action" style="background:#dc2626;" onclick="stopAudioPrompt()">⏹ Stop</button>
+          <span id="audio-status" style="font-weight:600; color:#334155;">Ready to play</span>
+        </div>
+        <div id="listening-notes" style="background: #f1f5f9; padding: 16px; border-radius: 6px; font-size: 0.95rem;">
+          <!-- Injected dynamically -->
+        </div>
+      </div>
+      <div class="split-pane right-input" id="listening-questions">
+        <!-- Injected dynamically -->
+      </div>
+    </section>
+
+    <!-- 2. READING TAB -->
+    <section id="tab-reading" class="tab-content">
+      <div class="split-pane left-doc" id="reading-passage">
+        <!-- Injected dynamically -->
+      </div>
+      <div class="split-pane right-input" id="reading-questions">
+        <!-- Injected dynamically -->
+      </div>
+    </section>
+
+    <!-- 3. WRITING TAB -->
+    <section id="tab-writing" class="tab-content">
+      <div class="split-pane left-doc">
+        <h2>Writing Task 2: Academic Argument</h2>
+        <br>
+        <div class="card" style="background:#f8fafc;" id="writing-prompt-box">
+          <!-- Injected dynamically -->
+        </div>
+        <p style="font-size:0.9rem; color:var(--text-muted);">
+          Write at least <strong>250 words</strong>. You are evaluated on Task Achievement, Coherence & Cohesion, Lexical Resource, and Grammatical Range.
+        </p>
+      </div>
+      <div class="split-pane right-input">
+        <textarea id="writing-input" placeholder="Type your formal response here..." oninput="updateWordCount()"></textarea>
+        <div class="word-counter" id="word-count-display">Word Count: 0 / 250 min</div>
+      </div>
+    </section>
+
+    <!-- 4. SPEAKING TAB -->
+    <section id="tab-speaking" class="tab-content">
+      <div class="split-pane left-doc">
+        <h2>Speaking Module: Part 2 Cue Card</h2>
+        <br>
+        <div class="card" id="speaking-card-box">
+          <!-- Injected dynamically -->
+        </div>
+        <button class="btn-action" onclick="startPrepTimer()">Start 1-Min Preparation Timer</button>
+        <span id="prep-timer" style="font-weight:bold; margin-left:10px;">01:00</span>
+      </div>
+      <div class="split-pane right-input">
+        <div class="card">
+          <h3>Record Your Speaking Response</h3>
+          <p style="color:var(--text-muted); font-size:0.9rem; margin:10px 0;">Speak for 1.5 to 2 minutes. Test your mic directly in-browser:</p>
+          <button class="btn-action" id="record-btn" onclick="toggleRecording()">🎙 Start Recording</button>
+          <audio id="audio-playback" controls style="display:none; margin-top:15px; width: 100%;"></audio>
+        </div>
+        <div class="card">
+          <h4>Self-Assessment / Fluency Check</h4>
+          <label><input type="checkbox" id="spk_c1"> Spoke continuously for > 90 seconds without prolonged pauses</label><br><br>
+          <label><input type="checkbox" id="spk_c2"> Used topic-specific vocabulary and idioms naturally</label><br><br>
+          <label><input type="checkbox" id="spk_c3"> Answered all prompt bullet points in sequential structure</label>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. RESULTS TAB -->
+    <section id="tab-results" class="tab-content">
+      <div class="analytics-view">
+        <h2>Exam Performance & Band Score Diagnostic</h2>
+        <br>
+        <div class="score-summary">
+          <div class="metric"><div class="metric-val" id="res-overall">0.0</div>Overall Band</div>
+          <div class="metric"><div class="metric-val" id="res-target">7.0</div>Target Band</div>
+          <div class="metric"><div class="metric-val" id="res-status" style="font-size:1.4rem;">PENDING</div>Status</div>
+        </div>
+
+        <div class="chart-box">
+          <canvas id="scoreChart"></canvas>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <script>
+    let currentExam = null;
+    let chartInstance = null;
+
+    async function randomizeExam() {
+      const btn = document.querySelector('button[onclick="randomizeExam()"]');
+      const originalText = btn.innerText;
+      btn.innerText = "Generating Exam (Please wait...)";
+      btn.disabled = true;
+
+      try {
+        const response = await fetch('/api/generate-exam');
+        if (!response.ok) throw new Error("Failed to generate exam");
+        currentExam = await response.json();
+
+        document.getElementById('exam-id-badge').innerText = `Active: ${currentExam.id}`;
+
+        // Populate Listening
+      document.getElementById('listening-notes').innerHTML = currentExam.listening.notes;
+      document.getElementById('listening-questions').innerHTML = currentExam.listening.questions.map(q => `
+        <div class="card">
+          <p style="margin-bottom:10px;"><strong>${q.prompt}</strong></p>
+          ${q.options.map(opt => `<label style="margin-right:16px;"><input type="radio" name="lis_${q.id}" value="${opt}"> ${opt}</label>`).join('')}
+        </div>
+      `).join('');
+
+      // Populate Reading
+      document.getElementById('reading-passage').innerHTML = `
+        <h2>${currentExam.reading.title}</h2><br>
+        ${currentExam.reading.paragraphs.map(p => `<p style="margin-bottom:16px;"><strong>[${p.tag}]</strong>${p.text}</p>`).join('')}
+      `;
+      document.getElementById('reading-questions').innerHTML = currentExam.reading.questions.map((q, i) => `
+        <div class="card">
+          <p style="margin-bottom:10px;"><strong>Question ${i+1}:</strong> ${q.prompt}</p>
+          ${q.options.map(opt => `<label style="margin-right:16px;"><input type="radio" name="read_${q.id}" value="${opt}"> ${opt}</label>`).join('')}
+        </div>
+      `).join('');
+
+      // Populate Writing
+      document.getElementById('writing-prompt-box').innerHTML = `<strong>Prompt:</strong> ${currentExam.writing.prompt}`;
+      document.getElementById('writing-input').value = "";
+      updateWordCount();
+
+      // Populate Speaking
+      document.getElementById('speaking-card-box').innerHTML = currentExam.speaking.cueCard;
+
+      switchTab('listening');
+      } catch (error) {
+        console.error("Error generating exam:", error);
+        alert("There was an error generating the exam. Please try again.");
+      } finally {
+        btn.innerText = originalText;
+        btn.disabled = false;
+      }
+    }
+
+    // --- TAB SWITCHER ---
+    function switchTab(tabName) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+      
+      document.getElementById(`tab-${tabName}`).classList.add('active');
+      const tabs = ['listening', 'reading', 'writing', 'speaking', 'results'];
+      const index = tabs.indexOf(tabName);
+      if(index >= 0) document.querySelectorAll('.nav-btn')[index].classList.add('active');
+    }
+
+    // --- AUDIO (WEB SPEECH API) ---
+    function playAudioPrompt() {
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(currentExam.listening.speechText);
+      utterance.rate = 0.95;
+      utterance.pitch = 1.0;
+      utterance.onstart = () => { document.getElementById('audio-status').innerText = "Playing audio..."; };
+      utterance.onend = () => { document.getElementById('audio-status').innerText = "Playback complete"; };
+      window.speechSynthesis.speak(utterance);
+    }
+
+    function stopAudioPrompt() {
+      window.speechSynthesis.cancel();
+      document.getElementById('audio-status').innerText = "Stopped";
+    }
+
+    // --- WRITING WORD COUNTER ---
+    function updateWordCount() {
+      const text = document.getElementById('writing-input').value.trim();
+      const count = text ? text.split(/\s+/).length : 0;
+      const el = document.getElementById('word-count-display');
+      el.innerText = `Word Count: ${count} / 250 min`;
+      el.style.color = count >= 250 ? '#16a34a' : '#64748b';
+    }
+
+    // --- SPEAKING TIMER & RECORDER ---
+    let prepTimer = null;
+    function startPrepTimer() {
+      let t = 60;
+      clearInterval(prepTimer);
+      prepTimer = setInterval(() => {
+        t--;
+        let sec = t < 10 ? "0" + t : t;
+        document.getElementById('prep-timer').innerText = `00:${sec}`;
+        if (t <= 0) clearInterval(prepTimer);
+      }, 1000);
+    }
+
+    let mediaRecorder = null;
+    let audioChunks = [];
+    async function toggleRecording() {
+      const btn = document.getElementById('record-btn');
+      if (!mediaRecorder || mediaRecorder.state === 'inactive') {
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          mediaRecorder = new MediaRecorder(stream);
+          audioChunks = [];
+          mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+          mediaRecorder.onstop = () => {
+            const blob = new Blob(audioChunks, { type: 'audio/webm' });
+            const url = URL.createObjectURL(blob);
+            const player = document.getElementById('audio-playback');
+            player.src = url;
+            player.style.display = 'block';
+          };
+          mediaRecorder.start();
+          btn.innerText = "⏹ Stop Recording";
+          btn.style.background = "#dc2626";
+        } catch (err) {
+          alert("Microphone permission required for audio practice.");
+        }
+      } else {
+        mediaRecorder.stop();
+        btn.innerText = "🎙 Re-record Response";
+        btn.style.background = "var(--accent)";
+      }
+    }
+
+    // --- OFFICIAL IELTS BAND ROUNDING ---
+    function calculateIeltsRound(avg) {
+      const whole = Math.floor(avg);
+      const frac = avg - whole;
+      if (frac < 0.25) return whole;
+      if (frac >= 0.25 && frac < 0.75) return whole + 0.5;
+      return whole + 1.0;
+    }
+
+    // --- FULL SCORING & GRAPHING ---
+    function submitFullExam() {
+      // 1. Grade Listening
+      let lisScore = 0;
+      currentExam.listening.questions.forEach(q => {
+        const val = document.querySelector(`input[name="lis_${q.id}"]:checked`)?.value;
+        if (val === q.answer) lisScore++;
+      });
+      const lisBand = lisScore === 2 ? 7.5 : lisScore === 1 ? 6.0 : 4.5;
+
+      // 2. Grade Reading
+      let readScore = 0;
+      currentExam.reading.questions.forEach(q => {
+        const val = document.querySelector(`input[name="read_${q.id}"]:checked`)?.value;
+        if (val === q.answer) readScore++;
+      });
+      const readBand = readScore === 3 ? 8.0 : readScore === 2 ? 6.5 : readScore === 1 ? 5.0 : 4.0;
+
+      // 3. Grade Writing (Heuristic band)
+      const wText = document.getElementById('writing-input').value.trim();
+      const words = wText ? wText.split(/\s+/).length : 0;
+      let writeBand = 5.0;
+      if (words >= 250) writeBand = 7.0;
+      else if (words >= 180) writeBand = 6.0;
+
+      // 4. Grade Speaking (Self checklist criteria)
+      let spkCount = 0;
+      if (document.getElementById('spk_c1').checked) spkCount++;
+      if (document.getElementById('spk_c2').checked) spkCount++;
+      if (document.getElementById('spk_c3').checked) spkCount++;
+      const spkBand = spkCount === 3 ? 7.5 : spkCount === 2 ? 6.5 : 5.5;
+
+      // Overall average with official IELTS rounding
+      const rawAvg = (lisBand + readBand + writeBand + spkBand) / 4;
+      const overallBand = calculateIeltsRound(rawAvg);
+
+      // Update UI Metrics
+      document.getElementById('res-overall').innerText = overallBand.toFixed(1);
+      const statusEl = document.getElementById('res-status');
+      if (overallBand >= 7.0) {
+        statusEl.innerText = "MET (>= 7.0)";
+        statusEl.style.color = "#16a34a";
+      } else {
+        statusEl.innerText = "UNMET (< 7.0)";
+        statusEl.style.color = "#dc2626";
+      }
+
+      // Draw Chart.js Bar Graph
+      renderScoreChart([lisBand, readBand, writeBand, spkBand, overallBand]);
+
+      switchTab('results');
+    }
+
+    function renderScoreChart(scores) {
+      const ctx = document.getElementById('scoreChart').getContext('2d');
+      if (chartInstance) chartInstance.destroy();
+
+      chartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: ['Listening', 'Reading', 'Writing', 'Speaking', 'Overall Band'],
+          datasets: [
+            {
+              label: 'Achieved Band Score',
+              data: scores,
+              backgroundColor: [
+                '#3b82f6', '#3b82f6', '#3b82f6', '#3b82f6',
+                scores[4] >= 7.0 ? '#16a34a' : '#f59e0b'
+              ],
+              borderRadius: 6
+            },
+            {
+              type: 'line',
+              label: 'Target Threshold (Band 7.0)',
+              data: [7.0, 7.0, 7.0, 7.0, 7.0],
+              borderColor: '#ef4444',
+              borderWidth: 2,
+              borderDash: [6, 6],
+              fill: false,
+              pointRadius: 0
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          scales: {
+            y: {
+              min: 0,
+              max: 9.0,
+              ticks: { stepSize: 1.0 }
+            }
+          },
+          plugins: {
+            title: {
+              display: true,
+              text: 'Band Score Breakdown vs. Band 7.0 Target'
+            }
+          }
+        }
+      });
+    }
+
+    // Initialize on page load
+    window.onload = randomizeExam;
+  </script>
+</body>
+</html>
