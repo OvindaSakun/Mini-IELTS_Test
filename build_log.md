@@ -12,3 +12,5 @@
 
 - Build iteration 7 configuration check
 
+- Build iteration 8 configuration check
+
