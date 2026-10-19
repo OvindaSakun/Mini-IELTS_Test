@@ -1,0 +1,38 @@
+{
+  "title": "Academic Reading Test 1",
+  "time_minutes": 20,
+  "passage": {
+    "heading": "The Impact of Distributed Ledger Technology on Port Logistics",
+    "paragraphs": [
+      { "tag": "A", "text": "Global container shipping operations have historically suffered from documentation bottlenecks. A standard maritime bill of lading typically requires endorsement across multiple intermediaries, including freight forwarders, customs brokers, and banking institutions. Inefficiencies arising from mismatched paper documentation account for an estimated 15% of aggregate transit delays across tier-one container terminals." },
+      { "tag": "B", "text": "Distributed ledger technology (DLT) offers an immutable, shared record that eliminates redundant verification steps. When applied to clearance pipelines, smart contracts trigger automated compliance checks the moment automated identification systems (AIS) report an incoming vessel crossing territorial waters. Trials conducted across Rotterdam and Singapore demonstrated administrative processing time reductions exceeding 40%." },
+      { "tag": "C", "text": "However, broad deployment faces resistance not from technical limitations, but from disparate jurisdictional standards. While maritime law in some jurisdictions recognizes digital signatures on shipping manifests, others strictly enforce paper-based wet signatures. Until international maritime agreements enforce uniform digital validity, hybrid systems will remain the industry standard." }
+    ]
+  },
+  "questions": [
+    {
+      "id": 1,
+      "type": "TFNG",
+      "prompt": "Discrepancies in paper documentation are responsible for roughly 15% of overall transit delays in major container ports.",
+      "options": ["TRUE", "FALSE", "NOT GIVEN"],
+      "answer": "TRUE",
+      "explanation": "Paragraph A specifies that mismatched paper documentation accounts for an estimated 15% of aggregate transit delays across tier-one terminals."
+    },
+    {
+      "id": 2,
+      "type": "TFNG",
+      "prompt": "The Rotterdam and Singapore port trials proved that DLT completely eliminated cargo clearance fees.",
+      "options": ["TRUE", "FALSE", "NOT GIVEN"],
+      "answer": "NOT GIVEN",
+      "explanation": "Paragraph B mentions reductions in administrative processing time exceeding 40%, but says nothing about completely eliminating clearance fees."
+    },
+    {
+      "id": 3,
+      "type": "TFNG",
+      "prompt": "Technical shortcomings of blockchain software are the primary obstacle to global implementation.",
+      "options": ["TRUE", "FALSE", "NOT GIVEN"],
+      "answer": "FALSE",
+      "explanation": "Paragraph C states that deployment faces resistance 'not from technical limitations, but from disparate jurisdictional standards'."
+    }
+  ]
+}
