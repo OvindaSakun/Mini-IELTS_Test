@@ -4,3 +4,5 @@
 
 - Build iteration 3 configuration check
 
+- Build iteration 4 configuration check
+
